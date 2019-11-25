@@ -18,8 +18,10 @@ public class Log implements Serializable {
     @Id
     @Column(name = "USER_ID")
     private int userId;
+
     @Id
     private int attempt;
+
     @Id
     @Column(name = "STEP_NUMBER")
     private int stepNumber;

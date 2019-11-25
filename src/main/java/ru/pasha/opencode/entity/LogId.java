@@ -11,7 +11,9 @@ import java.util.Objects;
 public class LogId implements Serializable {
     @Column(name = "USER_ID")
     private int userId;
+
     private int attempt;
+
     @Column(name = "STEP_NUMBER")
     private int stepNumber;
 
