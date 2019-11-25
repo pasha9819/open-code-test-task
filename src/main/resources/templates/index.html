@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Быки и коровы</title>
+    <link rel="stylesheet" th:href="@{static/style.css}">
+    <script th:inline="javascript"> var ctx = /*[[@{/}]]*/ ''; </script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+</head>
+<body>
+<div id="page" v-cloak>
+    <div v-if="mode === 'menu'"  id="menu">
+        <button @click="startGame" class="menu-button">Играть</button>
+        <button @click="loadHistory" class="menu-button">Мои попытки</button>
+        <button @click="loadRating" class="menu-button">Рейтинг</button>
+        <form method="post" th:action="@{logout}">
+            <input type="submit" class="menu-button" value="Выйти">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        </form>
+    </div>
+
+    <div v-if="mode === 'win'"  id="win" style="text-align: center">
+        <p>Игра завершена!</p>
+        <p>Загаданное число: {{current}}</p>
+        <p>Потрачено попыток:{{steps.length + 1}}</p>
+        <button @click="toMenu" class="menu-button">
+            Назад
+        </button>
+    </div>
+
+    <div v-if="mode === 'game'" id="game">
+        <div id="game-field">
+            <div class="display">{{current || '____'}}</div>
+            <div @click="append('7')" class="btn">7</div>
+            <div @click="append('8')" class="btn">8</div>
+            <div @click="append('9')" class="btn">9</div>
+            <div @click="append('4')" class="btn">4</div>
+            <div @click="append('5')" class="btn">5</div>
+            <div @click="append('6')" class="btn">6</div>
+            <div @click="append('1')" class="btn">1</div>
+            <div @click="append('2')" class="btn">2</div>
+            <div @click="append('3')" class="btn">3</div>
+            <div @click="append('0')" class="btn">0</div>
+            <div @click="clear" class="btn">C</div>
+            <div @click="send" class="btn send">&#10148;</div>
+            <div @click="mode = 'menu'" class="btn back">
+                <span>Назад</span>
+            </div>
+        </div>
+        <div id="game-log">
+            <p>Ходы:</p>
+            <p v-for="item in steps.slice().reverse()">
+                {{item.stepNumber}} : {{item.number}} - {{item.bulls}}Б {{item.cows}}К
+            </p>
+        </div>
+    </div>
+
+    <div v-if="mode === 'history'" id="history">
+        <div v-if="logs.length > 0" class="table-container">
+            <table >
+                <thead>
+                    <tr>
+                        <td>Номер попытки</td>
+                        <td>Количество ходов</td>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr class="data" v-for="log in logs" @click="toAttemptHistory(log.attempt)" title="Посмотреть историю попытки">
+                    <td >{{log.attempt}}</td>
+                    <td>{{log.stepNumber}}</td>
+                </tr>
+                </tbody>
+            </table>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 10px">
+                <button @click="prevHistory" class="prev-page-btn"
+                        :disabled="currentHistoryPage === 0">&lt;</button>
+
+                <button class="current-page-btn">{{currentHistoryPage + 1}}</button>
+
+                <button @click="nextHistory" class="next-page-btn"
+                        :disabled="currentHistoryPage === historyPageCount - 1" >&gt;</button>
+            </div>
+
+        </div>
+        <div v-else>
+            <p>Вы не сыграли ни одной игры!</p>
+        </div>
+        <button @click="toMenu" class="menu-button back-btn">Назад</button>
+    </div>
+
+    <div v-if="mode === 'attemptHistory'" id="attemptHistory">
+        <div v-if="gameLog.length > 0" style="overflow-y: auto; max-height: 300px" >
+            <table>
+                <thead>
+                    <tr>
+                        <td>Ход</td>
+                        <td>Ваше число</td>
+                        <td>Быки</td>
+                        <td>Коровы</td>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr v-for="log in gameLog">
+                    <td>{{log.stepNumber}}</td>
+                    <td>{{log.number}}</td>
+                    <td>{{log.bulls}}</td>
+                    <td>{{log.cows}}</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+        <div v-else>
+            <p>Нет информации об этой игре :(</p>
+        </div>
+        <button @click="loadHistory" class="menu-button  back-btn">Назад</button>
+    </div>
+
+    <div v-if="mode === 'rating'" id="rating">
+        <div v-if="rating.length > 0" class="table-container">
+            <table >
+                <thead>
+                    <tr style="font-size: 16px ">
+                        <td>Пользователь</td>
+                        <td>Количество<br>игр</td>
+                        <td>Рейтинг</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="r in rating">
+                        <td >{{r.username}}</td>
+                        <td >{{r.gameCount}}</td>
+                        <td>{{r.rating.toFixed(3)}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 10px">
+                <button @click="prevRating" class="prev-page-btn"
+                        :disabled="currentRatingPage === 0">&lt;</button>
+
+                <button class="current-page-btn">{{currentRatingPage + 1}}</button>
+
+                <button @click="nextRating" class="next-page-btn"
+                        :disabled="currentRatingPage === ratingPageCount - 1" >&gt;</button>
+            </div>
+
+        </div>
+        <div v-else>
+            <p>Нет информации о пользователях :(</p>
+        </div>
+        <button @click="toMenu" class="menu-button back-btn">Назад</button>
+    </div>
+
+    <div v-if="mode === 'error'" id="server-error">
+        <p>Во время выполнения запроса произошла ошибка</p>
+        <p>Попробуйте позже</p>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{static/index.js}"></script>
+</body>
+</html>

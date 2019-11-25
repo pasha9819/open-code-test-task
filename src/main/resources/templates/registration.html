@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация</title>
+    <link rel="stylesheet" th:href="@{static/style.css}">
+    <script th:inline="javascript"> var ctx = /*[[@{/}]]*/ ''; </script>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+
+</head>
+<body>
+<div id="page"  v-cloak>
+    <div v-if="!serverError" id="registration">
+        <input v-bind:class="{'error-input' : usernameError}" class="text-input"
+               type="text" title="Логин" placeholder="Логин" v-model="username">
+        <div class="error" v-if="usernameError">{{usernameError}}</div>
+
+        <input v-bind:class="{'error-input' : passwordError}" class="text-input"
+               type="password" title="Пароль" placeholder="Пароль" v-model="password">
+        <div class="error" v-if="passwordError">{{passwordError}}</div>
+
+        <input v-bind:class="{'error-input' : passwordConfirmError}" class="text-input"
+               type="password" title="Повторите пароль" placeholder="Повторите пароль" v-model="passwordConfirm">
+        <div class="error" v-if="passwordConfirmError">{{passwordConfirmError}} </div>
+
+        <input id="csrf" type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button @click="reg" class="sign">Зарегистрироваться</button>
+        <div class="log-reg-message">
+            Уже зарегистрированы?
+            <a th:href="@{/login}">Войти</a>
+        </div>
+    </div >
+
+    <div id="server-error" v-if="serverError">
+        <p>Произошла ошибка на сервере</p>
+        <p>Попробуйте позже</p>
+    </div>
+</div>
+
+<script type="text/javascript" th:src="@{static/registration.js}"></script>
+</body>
+</html>
