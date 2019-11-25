@@ -12,6 +12,9 @@
 <body>
 <div id="page"  v-cloak>
     <div v-if="!serverError" id="registration">
+        <div class="game-name">
+            <p style="padding: 5px;"> Быки и коровы </p>
+        </div>
         <input v-bind:class="{'error-input' : usernameError}" class="text-input"
                type="text" title="Логин" placeholder="Логин" v-model="username">
         <div class="error" v-if="usernameError">{{usernameError}}</div>

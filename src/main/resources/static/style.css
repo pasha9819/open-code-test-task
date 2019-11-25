@@ -2,6 +2,12 @@
     display: none;
 }
 
+.game-name{
+    text-align: center;
+    background-color: lightgray;
+    border-radius: 13px;
+}
+
 .error {
     color: darkred;
     font-size: 13px;
